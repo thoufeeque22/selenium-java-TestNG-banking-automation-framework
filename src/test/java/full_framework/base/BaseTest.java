@@ -7,8 +7,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.testng.annotations.*;
 
 import java.time.Duration;
@@ -28,6 +30,7 @@ public class BaseTest {
     @BeforeMethod
     public void setup() {
         String browser = ConfigLoader.getStringProperty("browser");
+        boolean headless = Boolean.parseBoolean(ConfigLoader.getStringProperty("headless_mode"));
         int implicitWaitSeconds = Integer.parseInt(ConfigLoader.getStringProperty("implicit.wait.seconds"));
         int explicitWaitSeconds = Integer.parseInt(ConfigLoader.getStringProperty("explicit.wait.seconds"));
 
@@ -37,21 +40,32 @@ public class BaseTest {
             case "chrome":
                 // Use WebDriverManager to setup ChromeDriver
                 WebDriverManager.chromedriver().setup();
+                ChromeOptions chromeOptions = new ChromeOptions();
+                if (headless) {
+                    chromeOptions.addArguments("--headless=new"); // For new headless mode in Chrome
+                    chromeOptions.addArguments("--disable-gpu"); // Recommended for headless
+                    chromeOptions.addArguments("--no-sandbox"); // Recommended for CI/CD environments
+                    chromeOptions.addArguments("--window-size=1920,1080"); // Set a fixed window size for headless
+                }
                 driver = new ChromeDriver();
                 logger.info("ChromeDriver initialized via WebDriverManager.");
                 break;
             case "firefox":
                 // Use WebDriverManager to setup FirefoxDriver
                 WebDriverManager.firefoxdriver().setup();
+                FirefoxOptions firefoxOptions = new FirefoxOptions();
+                if (headless) {
+                    firefoxOptions.addArguments("-headless");
+                }
                 driver = new FirefoxDriver();
                 logger.info("FirefoxDriver initialized via WebDriverManager.");
                 break;
-            case "edge":
-                // Use WebDriverManager to setup EdgeDriver
-                WebDriverManager.edgedriver().setup();
-                driver = new EdgeDriver();
-                logger.info("EdgeDriver initialized via WebDriverManager.");
-                break;
+//            case "edge":
+//                // Use WebDriverManager to setup EdgeDriver
+//                WebDriverManager.edgedriver().setup();
+//                driver = new EdgeDriver();
+//                logger.info("EdgeDriver initialized via WebDriverManager.");
+//                break;
             // Add more browsers as needed
             default:
                 logger.error("Browser '" + browser + "' is not supported. Please check config.properties.");

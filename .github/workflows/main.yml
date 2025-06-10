@@ -1,0 +1,47 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest # Or windows-latest, macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Install Google Chrome (for headless testing)
+        run: |
+          sudo apt-get update
+          sudo apt-get install google-chrome-stable
+
+      - name: Build with Maven
+        run: mvn -B clean install -DskipTests # -B for batch mode, -DskipTests to skip tests during build
+
+      - name: Run Tests with Maven
+        run: mvn -B test -Dsurefire.suiteXmlFiles=testng.xml
+
+      - name: Upload ExtentReports
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExtentReports
+          path: reports/ # Path to your generated reports directory
+          retention-days: 7 # How long to keep the artifact
+
+      - name: Publish Test Results (JUnit)
+        uses: asafw/testng-results-reporter-action@v1 # A common action for TestNG results
+        if: always()
+        with:
+          testng-results-path: target/surefire-reports/testng-results.xml
