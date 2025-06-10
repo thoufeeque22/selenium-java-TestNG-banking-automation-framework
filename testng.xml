@@ -1,0 +1,4 @@
+<!--TestNG suite configuration file-->
+<!--The primary configuration file for TestNG.-->
+<!--Defines test suites, test classes to be run, parameters, listeners, and allows for parallel execution configuration.-->
+<root></root>
