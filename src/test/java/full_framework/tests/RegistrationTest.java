@@ -10,8 +10,8 @@ public class RegistrationTest extends BaseTest {
 
     @DataProvider(name = "RegistrationDataFromExcel")
     public Object[][] getRegistrationDataFromExcel() {
-        String excelFilePath = System.getProperty("user.dir") + ConfigLoader.getStringProperty("testdata.excel.path");
-        String sheetName = System.getProperty("user.dir") + ConfigLoader.getStringProperty("registration.excel.sheetname");
+        String excelFilePath = ConfigLoader.getStringProperty("testdata.excel.path");
+        String sheetName = ConfigLoader.getStringProperty("registration.excel.sheetname");
         ExcelReader reader = new ExcelReader(excelFilePath, sheetName);
         return reader.getTableData();
     }
