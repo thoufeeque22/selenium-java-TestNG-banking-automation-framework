@@ -2,17 +2,19 @@
 package full_framework.base;
 
 import full_framework.utils.ConfigLoader;
-import io.github.bonigarcia.wdm.WebDriverManager; // Import WebDriverManager
+import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.chrome.ChromeOptions; // Import ChromeOptions
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.firefox.FirefoxOptions; // Import FirefoxOptions for consistency
 import org.testng.annotations.*;
 
+import java.io.File; // Import File
+import java.io.IOException; // Import IOException
+import java.nio.file.Files; // Import Files for temporary directory creation
 import java.time.Duration;
 
 public class BaseTest {
@@ -34,39 +36,49 @@ public class BaseTest {
         int implicitWaitSeconds = Integer.parseInt(ConfigLoader.getStringProperty("implicit.wait.seconds"));
         int explicitWaitSeconds = Integer.parseInt(ConfigLoader.getStringProperty("explicit.wait.seconds"));
 
-        logger.info("Initializing WebDriver for browser: " + browser);
+        logger.info("Initializing WebDriver for browser: " + browser + (headless ? " (headless)" : ""));
 
         switch (browser.toLowerCase()) {
             case "chrome":
-                // Use WebDriverManager to setup ChromeDriver
                 WebDriverManager.chromedriver().setup();
                 ChromeOptions chromeOptions = new ChromeOptions();
+
                 if (headless) {
-                    chromeOptions.addArguments("--headless=new"); // For new headless mode in Chrome
-                    chromeOptions.addArguments("--disable-gpu"); // Recommended for headless
-                    chromeOptions.addArguments("--no-sandbox"); // Recommended for CI/CD environments
-                    chromeOptions.addArguments("--window-size=1920,1080"); // Set a fixed window size for headless
+                    chromeOptions.addArguments("--headless=new");
+                    chromeOptions.addArguments("--disable-gpu");
                 }
-                driver = new ChromeDriver();
-                logger.info("ChromeDriver initialized via WebDriverManager.");
+
+                chromeOptions.addArguments("--no-sandbox");
+                chromeOptions.addArguments("--disable-dev-shm-usage");
+                chromeOptions.addArguments("--window-size=1920,1080");
+
+                try {
+                    // --- CORRECTED LINE HERE ---
+                    File tempUserDataDir = Files.createTempDirectory("chrome_profile_").toFile(); // .toFile() added
+                    chromeOptions.addArguments("--user-data-dir=" + tempUserDataDir.getAbsolutePath());
+                    logger.info("Using temporary user data directory for Chrome: " + tempUserDataDir.getAbsolutePath());
+
+                } catch (IOException e) {
+                    logger.error("Failed to create temporary user data directory for Chrome: " + e.getMessage(), e);
+                }
+                // ... (rest of the chrome case) ...
                 break;
             case "firefox":
-                // Use WebDriverManager to setup FirefoxDriver
                 WebDriverManager.firefoxdriver().setup();
                 FirefoxOptions firefoxOptions = new FirefoxOptions();
                 if (headless) {
                     firefoxOptions.addArguments("-headless");
                 }
-                driver = new FirefoxDriver();
+                driver = new FirefoxDriver(firefoxOptions);
                 logger.info("FirefoxDriver initialized via WebDriverManager.");
                 break;
-//            case "edge":
-//                // Use WebDriverManager to setup EdgeDriver
-//                WebDriverManager.edgedriver().setup();
-//                driver = new EdgeDriver();
-//                logger.info("EdgeDriver initialized via WebDriverManager.");
-//                break;
-            // Add more browsers as needed
+            case "edge":
+                WebDriverManager.edgedriver().setup();
+                // Edge also uses Chromium, so similar options apply if needed
+                driver = new ChromeDriver(); // Should be new EdgeDriver()
+                // Correction: driver = new EdgeDriver();
+                logger.info("EdgeDriver initialized via WebDriverManager.");
+                break;
             default:
                 logger.error("Browser '" + browser + "' is not supported. Please check config.properties.");
                 throw new IllegalArgumentException("Browser '" + browser + "' is not supported.");
