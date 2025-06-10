@@ -11,12 +11,12 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.edge.EdgeDriver; // Import EdgeDriver
-
 import org.testng.annotations.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+// Removed File, IOException, Files imports as they are no longer needed for this approach
+// import java.io.File;
+// import java.io.IOException;
+// import java.nio.file.Files;
 import java.time.Duration;
 
 public class BaseTest {
@@ -46,25 +46,23 @@ public class BaseTest {
                 ChromeOptions chromeOptions = new ChromeOptions();
 
                 if (headless) {
-                    chromeOptions.addArguments("--headless=new");
-                    chromeOptions.addArguments("--disable-gpu");
+                    chromeOptions.addArguments("--headless=new"); // For new headless mode (or --headless for older versions)
+                    chromeOptions.addArguments("--disable-gpu"); // Recommended for headless
                 }
 
-                chromeOptions.addArguments("--no-sandbox");
-                chromeOptions.addArguments("--disable-dev-shm-usage");
-                chromeOptions.addArguments("--window-size=1920,1080");
+                // --- NEW FIX FOR 'USER DATA DIRECTORY IN USE' ERROR ---
+                // These arguments are crucial for running Chrome in CI/CD (especially Linux/Docker)
+                chromeOptions.addArguments("--no-sandbox"); // Required when running as root (common in containers)
+                chromeOptions.addArguments("--disable-dev-shm-usage"); // Overcome limited /dev/shm space in containers
+                chromeOptions.addArguments("--window-size=1920,1080"); // Standardize resolution for consistent screenshots
+                chromeOptions.addArguments("--incognito"); // Crucial: Prevents using or creating a persistent user profile
+                // You can also try "--guest" instead of "--incognito" if needed, but incognito is more common.
 
-                try {
-                    File tempUserDataDir = Files.createTempDirectory("chrome_profile_").toFile();
-                    chromeOptions.addArguments("--user-data-dir=" + tempUserDataDir.getAbsolutePath());
-                    logger.info("Using temporary user data directory for Chrome: " + tempUserDataDir.getAbsolutePath());
+                // Removed the try-catch block for Files.createTempDirectory as it's no longer needed.
+                // That approach was sometimes problematic in certain CI environments.
 
-                } catch (IOException e) {
-                    logger.error("Failed to create temporary user data directory for Chrome: " + e.getMessage(), e);
-                    // Re-throw the exception to fail the test setup if this is critical
-                    throw new RuntimeException("Could not set up temporary user data directory for Chrome", e);
-                }
-                // --- ADDED THIS LINE ---
+                // --- END NEW FIX ---
+
                 driver = new ChromeDriver(chromeOptions);
                 logger.info("ChromeDriver initialized via WebDriverManager.");
                 break;
@@ -79,7 +77,6 @@ public class BaseTest {
                 break;
             case "edge":
                 WebDriverManager.edgedriver().setup();
-                // --- CORRECTED THIS LINE ---
                 driver = new EdgeDriver(); // Use EdgeDriver for Edge browser
                 logger.info("EdgeDriver initialized via WebDriverManager.");
                 break;
