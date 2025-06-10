@@ -7,14 +7,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions; // Import ChromeOptions
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions; // Import FirefoxOptions for consistency
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.edge.EdgeDriver; // Import EdgeDriver
+
 import org.testng.annotations.*;
 
-import java.io.File; // Import File
-import java.io.IOException; // Import IOException
-import java.nio.file.Files; // Import Files for temporary directory creation
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.Duration;
 
 public class BaseTest {
@@ -53,15 +55,18 @@ public class BaseTest {
                 chromeOptions.addArguments("--window-size=1920,1080");
 
                 try {
-                    // --- CORRECTED LINE HERE ---
-                    File tempUserDataDir = Files.createTempDirectory("chrome_profile_").toFile(); // .toFile() added
+                    File tempUserDataDir = Files.createTempDirectory("chrome_profile_").toFile();
                     chromeOptions.addArguments("--user-data-dir=" + tempUserDataDir.getAbsolutePath());
                     logger.info("Using temporary user data directory for Chrome: " + tempUserDataDir.getAbsolutePath());
 
                 } catch (IOException e) {
                     logger.error("Failed to create temporary user data directory for Chrome: " + e.getMessage(), e);
+                    // Re-throw the exception to fail the test setup if this is critical
+                    throw new RuntimeException("Could not set up temporary user data directory for Chrome", e);
                 }
-                // ... (rest of the chrome case) ...
+                // --- ADDED THIS LINE ---
+                driver = new ChromeDriver(chromeOptions);
+                logger.info("ChromeDriver initialized via WebDriverManager.");
                 break;
             case "firefox":
                 WebDriverManager.firefoxdriver().setup();
@@ -74,9 +79,8 @@ public class BaseTest {
                 break;
             case "edge":
                 WebDriverManager.edgedriver().setup();
-                // Edge also uses Chromium, so similar options apply if needed
-                driver = new ChromeDriver(); // Should be new EdgeDriver()
-                // Correction: driver = new EdgeDriver();
+                // --- CORRECTED THIS LINE ---
+                driver = new EdgeDriver(); // Use EdgeDriver for Edge browser
                 logger.info("EdgeDriver initialized via WebDriverManager.");
                 break;
             default:
