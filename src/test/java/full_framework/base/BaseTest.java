@@ -13,10 +13,6 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.edge.EdgeDriver; // Import EdgeDriver
 import org.testng.annotations.*;
 
-// Removed File, IOException, Files imports as they are no longer needed for this approach
-// import java.io.File;
-// import java.io.IOException;
-// import java.nio.file.Files;
 import java.time.Duration;
 
 public class BaseTest {
