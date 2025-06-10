@@ -13,7 +13,7 @@ import java.time.Duration;
 
 public class BaseTest {
 
-    protected WebDriver driver;
+    public WebDriver driver;
     // Initialize a logger for the BaseTest class
     private static final Logger logger = LogManager.getLogger(BaseTest.class);
 

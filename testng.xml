@@ -1,4 +1,13 @@
-<!--TestNG suite configuration file-->
-<!--The primary configuration file for TestNG.-->
-<!--Defines test suites, test classes to be run, parameters, listeners, and allows for parallel execution configuration.-->
-<root></root>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Automation Suite" parallel="methods" thread-count="2"> <listeners>
+    <listener class-name="full_framework.listeners.TestNGListener"/>
+</listeners>
+
+    <test name="Registration Feature Tests">
+        <classes>
+            <class name="full_framework.tests.RegistrationTest"/>
+        </classes>
+    </test>
+
+</suite>
